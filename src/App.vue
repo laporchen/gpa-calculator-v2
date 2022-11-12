@@ -10,7 +10,16 @@
 								<Calculator />
 							</n-layout-content>
 							<n-layout-footer w="full" h="12" p="x-8" position="absolute" borderer>
-									<p>Created by Lapor  <a href="https://github.com/laporchen/gpa-calculator"><i class="fa-brands fa-github"></i></a></p>
+								<n-space w="full" h="full" justify="center" align="center">
+									<n-text>
+										Created by Lapor  
+									</n-text>
+									<a href="https://github.com/laporchen/gpa-calculator-v2">
+										<n-icon size=20>
+											<LogoGithub />
+										</n-icon>
+									</a>
+								</n-space>
 							</n-layout-footer>
 						</n-layout>
 					</n-message-provider>
@@ -26,6 +35,7 @@ import store from "./scripts/vuex"
 import { isDark } from "./scripts/useDark"
 import { useOsTheme } from "naive-ui"
 import { darkTheme } from "naive-ui"
+import { LogoGithub } from "@vicons/ionicons5"
 import Calculator from "./components/Calculator.vue"
 import Navbar from "./components/Navbar.vue"
 
