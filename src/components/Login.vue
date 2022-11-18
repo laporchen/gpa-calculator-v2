@@ -90,7 +90,6 @@ const rules = {
 		trigger: "blur"
 	}
 }
-const result = ref<Grade[]>([])
 const scores = ref<Map<string,Map<string,Grade[]>>>(new Map())
 const getResult = ref(false)
 const handleValidateClick = async (e: MouseEvent) => {
