@@ -49,10 +49,10 @@
 							</thead>
 								
 							<tbody>
-								<tr v-for="course in semester" :key="course.id">
-									<th>{{course.course_name}}</th>	
+								<tr v-for="course in semester" :key="course.course_code">
+									<th>{{course.chn_name}}</th>	
 									<th>{{course.credit}}</th>	
-									<th>{{course.grade}}</th>	
+									<th>{{course.normal_score}}</th>	
 								</tr>
 							</tbody>
 						</n-table>
@@ -68,8 +68,8 @@ import { ref } from "vue"
 import { FormInst, useMessage, useLoadingBar } from 'naive-ui'
 import { gradeVal } from "../scripts/functions"
 import { scoreList } from "../data/score"
-import type { AccountInfo, Grade } from "../scripts/types"
 import axios from "axios"
+import type { AccountInfo, Grade } from "../scripts/types"
 const message = useMessage()
 const loadingBar = useLoadingBar()
 
@@ -90,7 +90,7 @@ const rules = {
 		trigger: "blur"
 	}
 }
-const result = ref<Grade[]>()
+const result = ref<Grade[]>([])
 const scores = ref<Map<string,Map<string,Grade[]>>>(new Map())
 const getResult = ref(false)
 const handleValidateClick = async (e: MouseEvent) => {
@@ -102,34 +102,38 @@ const handleValidateClick = async (e: MouseEvent) => {
 	})
 	loadingBar.start()
 	message.info("請稍等")
-	let response = await axios.post("fetch", user.value);
-	console.log(response)
-	if(response?.data) {
-		result.value = response.data	
-		result.value?.forEach((course) => {
-			if(!scores.value.has(course.year)){
-				scores.value.set(course.year,new Map())
-			}
-			if(!scores.value.get(course.year)!.has(course.semester)) {
-				scores.value.get(course.year)!.set(course.semester,[])
-			}
-			scores.value.get(course.year)!.get(course.semester)!.push(course)
-		})
-		console.log(scores.value)
-		getResult.value = true
-		loadingBar.finish()
-	}
-	else {
+	await axios.post("/getGrade",null, {
+		params: user.value
+	}).then(res => {
+		console.log(res.data)
+		try {
+			loadingBar.finish()
+			res.data.List.forEach((course : Grade)=>{
+				if (!scores.value.has(course.acadm_year)) {
+					scores.value.set(course.acadm_year, new Map())
+				}
+				if (!scores.value.get(course.acadm_year)!.has(course.acadm_term)) {
+					scores.value.get(course.acadm_year)!.set(course.acadm_term, [])
+				}
+				scores.value.get(course.acadm_year)!.get(course.acadm_term)!.push(course)
+			})
+			getResult.value = true
+		}
+		catch {
+			loadingBar.error()
+			message.error("請求失敗")
+		}
+	}).catch(() => {
 		loadingBar.error()
-		message.error("出現錯誤")
-	}
+		message.error("請求失敗")
+	})
 }
 
 function getGPA(semester : Grade[]) {
 	let grades = 0
 	let credits = 0
 	semester.forEach((course) => {
-		grades += parseInt(course.credit) * gradeVal(course.grade)
+		grades += parseInt(course.credit) * gradeVal(course.normal_score)
 		credits += parseInt(course.credit)
 	})
 	if(!credits) return "0.00" 
