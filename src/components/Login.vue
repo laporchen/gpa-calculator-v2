@@ -118,6 +118,7 @@ const handleValidateClick = async (e: MouseEvent) => {
 				scores.value.get(course.acadm_year)!.get(course.acadm_term)!.push(course)
 			})
 			getResult.value = true
+			console.log(res.data)
 		}
 		catch {
 			loadingBar.error()
@@ -133,8 +134,10 @@ function getGPA(semester : Grade[]) {
 	let grades = 0
 	let credits = 0
 	semester.forEach((course) => {
-		grades += parseInt(course.credit) * gradeVal(course.normal_score)
-		credits += parseInt(course.credit)
+		if(!course.note) {
+			grades += parseInt(course.credit) * gradeVal(course.normal_score)
+			credits += parseInt(course.credit)
+		}
 	})
 	if(!credits) return "0.00" 
 	return (grades / credits).toFixed(2)
@@ -143,9 +146,11 @@ function getGPA(semester : Grade[]) {
 
 function getCredits(semester : Grade[]) {
 	let credits = 0
-	semester.forEach((course) => {
-		credits += parseInt(course.credit)
-	})
+		semester.forEach((course) => {
+			if(!course.note) {
+				credits += parseInt(course.credit)
+			}
+		})
 	return credits
 }
 
