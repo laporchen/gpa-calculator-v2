@@ -1,21 +1,23 @@
 <template>
-	<n-form
-	v-if="!getResult"
-	ref="formRef"
-	:model="user"
-	:rules="rules" >
-		<n-form-item label="帳號" path="account">
-			<n-input v-model:value="user.account" placeholder="輸入帳號" />
-		</n-form-item>
-		<n-form-item label="密碼" path="password">
-			<n-input v-model:value="user.password" type="password" placeholder="輸入密碼" />
-		</n-form-item>
-		<n-space justify="center">
-			<n-button @click="handleValidateClick">
-				登入
-			</n-button>
-		</n-space>
-	</n-form>
+		<n-form
+		v-if="!getResult"
+		ref="formRef"
+		:model="user"
+		:rules="rules" >
+			<n-spin :show="loading">
+				<n-form-item label="帳號" path="account">
+					<n-input v-model:value="user.account" placeholder="輸入帳號" />
+				</n-form-item>
+				<n-form-item label="密碼" path="password">
+					<n-input v-model:value="user.password" type="password" placeholder="輸入密碼" />
+				</n-form-item>
+				<n-space justify="center">
+					<n-button @click="handleValidateClick">
+						登入
+					</n-button>
+				</n-space>
+			</n-spin>
+		</n-form>
 	<template v-else>
 		<n-collapse>
 			<template v-for="[key,year] in scores" :key="key">
@@ -40,7 +42,7 @@
 							</n-gi>
 						</n-grid>
 						<n-table>
-							<thead>
+							<thead >
 								<tr>
 									<th>課程名稱</th>
 									<th>學分數</th>
@@ -50,9 +52,9 @@
 								
 							<tbody>
 								<tr v-for="course in semester" :key="course.course_code">
-									<th>{{course.chn_name}}</th>	
-									<th>{{course.credit}}</th>	
-									<th>{{course.normal_score}}</th>	
+									<td>{{course.chn_name}}</td>	
+									<td>{{course.credit}}</td>	
+									<td>{{course.normal_score}}</td>	
 								</tr>
 							</tbody>
 						</n-table>
@@ -90,9 +92,9 @@ const rules = {
 		trigger: "blur"
 	}
 }
-const result = ref<Grade[]>([])
 const scores = ref<Map<string,Map<string,Grade[]>>>(new Map())
 const getResult = ref(false)
+const loading = ref(false)
 const handleValidateClick = async (e: MouseEvent) => {
 	e.preventDefault()
 	formRef.value?.validate((errors) => {
@@ -101,6 +103,7 @@ const handleValidateClick = async (e: MouseEvent) => {
 		}
 	})
 	loadingBar.start()
+	loading.value = true
 	message.info("請稍等")
 	await axios.post("/getGrade",null, {
 		params: user.value
@@ -118,14 +121,17 @@ const handleValidateClick = async (e: MouseEvent) => {
 				scores.value.get(course.acadm_year)!.get(course.acadm_term)!.push(course)
 			})
 			getResult.value = true
-			console.log(res.data)
+			loading.value = false
+			message.success("請求成功")
 		}
 		catch {
 			loadingBar.error()
+			loading.value = false
 			message.error("請求失敗")
 		}
 	}).catch(() => {
 		loadingBar.error()
+		loading.value = false
 		message.error("請求失敗")
 	})
 }
